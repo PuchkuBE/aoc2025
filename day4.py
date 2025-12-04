@@ -1,31 +1,32 @@
-lines = open('input/day4.txt','r').read().splitlines()
+with open('input/day4.txt', 'r') as f:
+    lines = f.read().splitlines()
+
+grid = [list(row) for row in lines]
+rows = len(grid)
+cols = len(grid[0])
+
+area = ((-1,-1),(-1,0),(-1,1),
+        (0,-1),(0,1),
+        (1,-1),(1,0),(1,1))
 
 def isReachable(row, col, grid):
-    rolls_around = 0
-    for r in range(row - 1, row + 2):
-        for c in range(col - 1, col + 2):
-            if 0 <= r < len(grid) and 0 <= c < len(grid[r]):
-                if grid[r][c] in {'@', 'x'}:
-                    rolls_around += 1
-    return rolls_around < 5
+    res = [1 if grid[row+dr][col+dc] in {'@', 'x'} else 0 for dr, dc in area if 0 <= row+dr < rows and 0 <= col+dc < cols]
+    return sum(res) < 4
 
 ans1 = 0
 ans2 = 0
 first_loop = True
 while True:
-    prev_ans2 = ans2
-    # Cleanup removed roles
-    lines = [l.replace('x', '.') for l in lines]
-    for idx_row, row in enumerate(lines):
-        for idx_col, val in enumerate(row):
-            # If we are on a roll, check if reachable
-            if val == '@' and isReachable(idx_row, idx_col, lines):
-                lines[idx_row] = lines[idx_row][:idx_col] + 'x' + lines[idx_row][idx_col+1:]
-                ans2 += 1
-                if first_loop: # In the first loop, determine the initial reachability
-                    ans1 += 1
-    first_loop = False
-    if ans2 == prev_ans2:
+    # Clean up the x's in grid first
+    grid = [['.' if c == 'x' else c for c in r] for r in grid]
+    # Mark reachable with x
+    grid = [['x' if c=='@' and isReachable(ir, ic, grid) else c for ic, c in enumerate(r)] for ir, r in enumerate(grid)]
+    nr_x = sum(row.count('x') for row in grid)
+    ans2 += nr_x
+    if first_loop:
+        ans1 = nr_x
+        first_loop = False
+    if nr_x == 0:
         break
 
 print(f'Solution for day4/part1: {ans1}')
