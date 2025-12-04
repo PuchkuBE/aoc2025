@@ -2,30 +2,29 @@ lines = open('input/day4.txt','r').read().splitlines()
 
 def isReachable(row, col, grid):
     rolls_around = 0
-    for r in range(row-1,row+2):
-        for c in range(col-1, col+2):
-            # Outside the grid are no rolls
-            if not ((r<0 or r >= len(grid)) or (c<0 or c >= len(grid[r]))):
-                rolls_around += 1 if grid[r][c] == '@' else 0
-    return rolls_around < 5 # Roll itself was included, so 5 instead of 4
+    for r in range(row - 1, row + 2):
+        for c in range(col - 1, col + 2):
+            if 0 <= r < len(grid) and 0 <= c < len(grid[r]):
+                if grid[r][c] in {'@', 'x'}:
+                    rolls_around += 1
+    return rolls_around < 5
 
 ans1 = 0
-for r in range(len(lines)):
-    for c in range(len(lines[r])):
-        # If we are on a roll, check if reachable
-        if lines[r][c] == '@':
-            ans1 += 1 if isReachable(r, c, lines) else 0
-
 ans2 = 0
+first_loop = True
 while True:
     prev_ans2 = ans2
-    for r in range(len(lines)):
-        for c in range(len(lines[r])):
+    # Cleanup removed roles
+    lines = [l.replace('x', '.') for l in lines]
+    for idx_row, row in enumerate(lines):
+        for idx_col, val in enumerate(row):
             # If we are on a roll, check if reachable
-            if lines[r][c] == '@':
-                if isReachable(r, c, lines):
-                    lines[r] = lines[r][:c] + '.' + lines[r][c+1:]
-                    ans2 += 1
+            if val == '@' and isReachable(idx_row, idx_col, lines):
+                lines[idx_row] = lines[idx_row][:idx_col] + 'x' + lines[idx_row][idx_col+1:]
+                ans2 += 1
+                if first_loop: # In the first loop, determine the initial reachability
+                    ans1 += 1
+    first_loop = False
     if ans2 == prev_ans2:
         break
 
